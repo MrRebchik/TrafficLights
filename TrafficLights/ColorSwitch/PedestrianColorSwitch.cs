@@ -1,4 +1,6 @@
-﻿namespace TrafficLights.ColorSwitch
+﻿using TrafficLights.TrafficLight;
+
+namespace TrafficLights.ColorSwitch
 {
     internal class PedestrianColorSwitch : ColorSwitchBase
     {

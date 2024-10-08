@@ -6,7 +6,7 @@
         Yellow,
         Red
     }
-    internal class ColorSwitchBase
+    public class ColorSwitchBase
     {
         public Color Color { get; protected set; }
         public Color PreviousColor { get; protected set; }
