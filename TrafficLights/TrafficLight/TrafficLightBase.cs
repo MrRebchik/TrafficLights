@@ -7,8 +7,8 @@ namespace TrafficLights.TrafficLight
     public enum Direction
     {
         Up,
-        Down,
         Left,
+        Down,
         Right
     }
     public abstract class TrafficLightBase
@@ -17,22 +17,42 @@ namespace TrafficLights.TrafficLight
         protected Queue<TrafficParticipantsBase> Queue;
         public readonly int ID;
         public readonly Direction Direction;
+        protected bool IsGreenNeeded;
         public int QueueCount { get => Queue.Count; }
         public int WaitingTime { get; set; }
         public virtual bool IsMovmentAllowed { get => Color != Color.Red; }
         public Color Color { get => ColorSwitch.Color;}
         protected ColorSwitchBase ColorSwitch {  get; set; }
-        public int Priority { get; set; }
+        public bool Priority { get; set; }
 
-        event MessageHandler QueueOverflow;
-        delegate void MessageHandler(int id, int queueCount, int queueWaitingTimeSum, int priority);
+        public event MessageHandler CompareRequest;
+        public delegate void MessageHandler(int id, int queueCount, int queueWaitingTimeSum, bool priority);
+
+        public TrafficLightBase(Crossroad crossroad, Direction direction)
+        {
+            IsGreenNeeded = true;
+            OtherTrafficLights = crossroad.TrafficLights;
+            Direction = direction;
+            ID = OtherTrafficLights.Count + 1;
+        }
 
         public virtual void QueueEncrease(int count = 1) { }
         public virtual void QueueDecrease()
         {
             Queue.Dequeue();
         }
-        private int GetQueueWaitingTimeSum()
+        public void OnUpdate()
+        {
+            
+        }
+        public void OnCheck()
+        {
+
+            IsGreenNeeded = true;
+        }
+        protected abstract bool IsIntersect(TrafficLightBase light);
+        protected abstract bool CompareWaitingTimeSum(int sum, Direction direction);
+        protected int GetQueueWaitingTimeSum()
         {
             int sum = 0;
             foreach(var p in Queue)
@@ -41,7 +61,7 @@ namespace TrafficLights.TrafficLight
             }
             return sum;
         }
-        private int GetOthersQueuesSum()
+        protected int GetOthersQueuesSum()
         {
             int sum = 0;
             foreach(TrafficLightBase t in OtherTrafficLights)
