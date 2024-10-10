@@ -14,7 +14,7 @@ namespace TrafficLights.TrafficLight
     public abstract class TrafficLightBase
     {
         protected readonly List<TrafficLightBase> OtherTrafficLights;
-        protected Queue<TrafficParticipantsBase> Queue;
+        protected Queue<TrafficParticipantsBase> Queue = new Queue<TrafficParticipantsBase>();
         public readonly int ID;
         public readonly Direction Direction;
         protected bool IsGreenNeeded;
@@ -23,10 +23,10 @@ namespace TrafficLights.TrafficLight
         public virtual bool IsMovmentAllowed { get => Color != Color.Red; }
         public Color Color { get => ColorSwitch.Color;}
         protected ColorSwitchBase ColorSwitch {  get; set; }
-        public bool Priority { get; set; }
+        public int PassedCount { get; set; }
 
         public event MessageHandler CompareRequest;
-        public delegate void MessageHandler(int id, int queueCount, int queueWaitingTimeSum, bool priority);
+        public delegate void MessageHandler(int id, int queueCount, int queueWaitingTimeSum);
 
         public TrafficLightBase(Crossroad crossroad, Direction direction)
         {
@@ -40,18 +40,37 @@ namespace TrafficLights.TrafficLight
         public virtual void QueueDecrease()
         {
             Queue.Dequeue();
+            PassedCount++;
         }
         public void OnUpdate()
         {
-            
+            CompareRequest?.Invoke(ID, QueueCount, GetQueueWaitingTimeSum());
         }
         public void OnCheck()
         {
-
+            if (IsGreenNeeded)
+                QueueDecrease();
             IsGreenNeeded = true;
+            foreach(var participants in Queue)
+            {
+                participants.EncreaseWatingTime();
+            }
         }
         protected abstract bool IsIntersect(TrafficLightBase light);
-        protected abstract bool CompareWaitingTimeSum(int sum, Direction direction);
+        public virtual void ComparePriority(int id, int queueCount, int queueWaitingTimeSum)
+        {
+            bool result;
+            if (GetQueueWaitingTimeSum() == queueWaitingTimeSum)
+            {
+                result = Direction > OtherTrafficLights.FirstOrDefault(x => x.ID == id).Direction;
+            }
+            else
+                result = GetQueueWaitingTimeSum() > queueWaitingTimeSum;
+            if (!result)
+            {
+                IsGreenNeeded = false;
+            }
+        }
         protected int GetQueueWaitingTimeSum()
         {
             int sum = 0;

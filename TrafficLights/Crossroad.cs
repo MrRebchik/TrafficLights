@@ -1,4 +1,5 @@
-﻿using TrafficLights.TrafficLight;
+﻿using System.Threading;
+using TrafficLights.TrafficLight;
 
 namespace TrafficLights
 {
@@ -24,14 +25,22 @@ namespace TrafficLights
             {
                 UpdateNotify += light.OnUpdate;
                 CheckNotify += light.OnCheck;
+                foreach(var other in TrafficLights)
+                {
+                    if(other != light)
+                    {
+                        light.CompareRequest += other.ComparePriority;
+                    }
+                }
             }
         }
 
-        public void Start()
+        public async void Start(double stepDurationSeconds = 0, int stepsCount = 50)
         {
-            while(true) // Задать необходимое количество итераций
+            for(int i = 0; i < stepsCount; i++)
             {
-                CycleStep();
+                await Task.Run(() => CycleStep());
+                Thread.Sleep((int)(stepDurationSeconds * 1000));
             }
         }
         private void CycleStep()

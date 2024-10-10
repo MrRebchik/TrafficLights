@@ -16,5 +16,10 @@ namespace TrafficLights.TrafficLight
             for (int i = 0; i < count; i++)
                 Queue.Enqueue(new Pedestrian(Direction, RoadSide));
         }
+
+        protected override bool IsIntersect(TrafficLightBase light)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
