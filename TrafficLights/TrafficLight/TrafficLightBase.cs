@@ -19,27 +19,30 @@ namespace TrafficLights.TrafficLight
         public readonly Direction Direction;
         protected bool IsGreenNeeded;
         public int QueueCount { get => Queue.Count; }
+        public int? MaxQueueWaitingTime { get => Queue.FirstOrDefault().WaitingTime; }
         public int WaitingTime { get; set; }
         public virtual bool IsMovmentAllowed { get => Color != Color.Red; }
-        public Color Color { get => ColorSwitch.Color;}
         protected ColorSwitchBase ColorSwitch {  get; set; }
+        public Color Color { get => ColorSwitch.Color;}
         public int PassedCount { get; set; }
+        public int Priority { get; set; }
 
         public event MessageHandler CompareRequest;
         public delegate void MessageHandler(int id, int queueCount, int queueWaitingTimeSum);
 
         public TrafficLightBase(Crossroad crossroad, Direction direction)
         {
-            IsGreenNeeded = true;
             OtherTrafficLights = crossroad.TrafficLights;
             Direction = direction;
             ID = OtherTrafficLights.Count + 1;
+            SetDefaultFlagsValues();
         }
 
         public virtual void QueueEncrease(int count = 1) { }
         public virtual void QueueDecrease()
         {
-            Queue.Dequeue();
+            if(Queue.Count != 0)
+                Queue.Dequeue();
             PassedCount++;
         }
         public void OnUpdate()
@@ -48,10 +51,12 @@ namespace TrafficLights.TrafficLight
         }
         public void OnCheck()
         {
-            if (IsGreenNeeded)
+            if (IsGreenNeeded && !IsMovmentAllowed)
+                ColorSwitch.NextColor();
+            if (IsMovmentAllowed)
                 QueueDecrease();
-            IsGreenNeeded = true;
-            foreach(var participants in Queue)
+            SetDefaultFlagsValues();
+            foreach (var participants in Queue)
             {
                 participants.EncreaseWatingTime();
             }
@@ -70,6 +75,11 @@ namespace TrafficLights.TrafficLight
             {
                 IsGreenNeeded = false;
             }
+        }
+        private void SetDefaultFlagsValues()
+        {
+            IsGreenNeeded = true;
+            Priority = OtherTrafficLights.Count;
         }
         protected int GetQueueWaitingTimeSum()
         {

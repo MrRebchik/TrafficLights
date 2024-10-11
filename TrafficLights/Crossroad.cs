@@ -51,11 +51,11 @@ namespace TrafficLights
             foreach (var light in TrafficLights)
             {
                 if(new Random().Next(100)>60)
-                    light.QueueEncrease(new Random().Next(2));
+                    light.QueueEncrease(new Random().Next(5));
             }
 
         }
-        event Action UpdateNotify;
-        event Action CheckNotify;
+        public event Action UpdateNotify;
+        public event Action CheckNotify;
     }
 }

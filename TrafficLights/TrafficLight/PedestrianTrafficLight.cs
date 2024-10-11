@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TrafficLights.ColorSwitch;
 using TrafficLights.TrafficParticipants;
 
 namespace TrafficLights.TrafficLight
@@ -8,6 +9,7 @@ namespace TrafficLights.TrafficLight
         public readonly Direction RoadSide;
         public PedestrianTrafficLight(Crossroad crossroad, Direction direction, Direction roadSide): base(crossroad, direction)
         {
+            ColorSwitch = new PedestrianColorSwitch();
             RoadSide = roadSide;
         }
 
