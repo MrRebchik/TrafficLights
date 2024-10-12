@@ -6,10 +6,10 @@ namespace TrafficLights.TrafficLight
 {
     public enum Direction
     {
-        Up,
         Left,
-        Down,
-        Right
+        Up,
+        Right,
+        Down
     }
     public abstract class TrafficLightBase
     {
@@ -18,14 +18,14 @@ namespace TrafficLights.TrafficLight
         public readonly int ID;
         public readonly Direction Direction;
         protected bool IsGreenNeeded;
+        public int Priority { get; set; }
         public int QueueCount { get => Queue.Count; }
-        public int? MaxQueueWaitingTime { get => Queue.FirstOrDefault().WaitingTime; }
+        public int MaxQueueWaitingTime { get { if (Queue.Count > 0) return Queue.FirstOrDefault().WaitingTime; else return 0; }  }
         public int WaitingTime { get; set; }
         public virtual bool IsMovmentAllowed { get => Color != Color.Red; }
         protected ColorSwitchBase ColorSwitch {  get; set; }
         public Color Color { get => ColorSwitch.Color;}
         public int PassedCount { get; set; }
-        public int Priority { get; set; }
 
         public event MessageHandler CompareRequest;
         public delegate void MessageHandler(int id, int queueCount, int queueWaitingTimeSum);
@@ -42,17 +42,21 @@ namespace TrafficLights.TrafficLight
         public virtual void QueueDecrease()
         {
             if(Queue.Count != 0)
+            {
                 Queue.Dequeue();
-            PassedCount++;
+                PassedCount++;
+            }
+            WaitingTime = 0;
         }
         public void OnUpdate()
         {
+            WaitingTime++;
             CompareRequest?.Invoke(ID, QueueCount, GetQueueWaitingTimeSum());
         }
-        public void OnCheck()
+        public void OnCheck() // TODO скорее всего тут косяк + потом либо тут либо в отдельном событии проверка дополнительных не мешающих светофоров
         {
             if (IsGreenNeeded && !IsMovmentAllowed)
-                ColorSwitch.NextColor();
+                ColorSwitch.NextColor(); //ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed)
             if (IsMovmentAllowed)
                 QueueDecrease();
             SetDefaultFlagsValues();
@@ -61,11 +65,11 @@ namespace TrafficLights.TrafficLight
                 participants.EncreaseWatingTime();
             }
         }
-        protected abstract bool IsIntersect(TrafficLightBase light);
+        protected abstract bool IsIntersect(TrafficLightBase light); //TODO
         public virtual void ComparePriority(int id, int queueCount, int queueWaitingTimeSum)
         {
             bool result;
-            if (GetQueueWaitingTimeSum() == queueWaitingTimeSum)
+            if (GetQueueWaitingTimeSum() == queueWaitingTimeSum) 
             {
                 result = Direction > OtherTrafficLights.FirstOrDefault(x => x.ID == id).Direction;
             }
@@ -73,7 +77,8 @@ namespace TrafficLights.TrafficLight
                 result = GetQueueWaitingTimeSum() > queueWaitingTimeSum;
             if (!result)
             {
-                IsGreenNeeded = false;
+                IsGreenNeeded = false; // или если не мешает, тогда оставляем тру
+                Priority--;
             }
         }
         private void SetDefaultFlagsValues()
@@ -90,7 +95,7 @@ namespace TrafficLights.TrafficLight
             }
             return sum;
         }
-        protected int GetOthersQueuesSum()
+        protected int GetOthersQueuesSum() // Еще никак не использовалось
         {
             int sum = 0;
             foreach(TrafficLightBase t in OtherTrafficLights)

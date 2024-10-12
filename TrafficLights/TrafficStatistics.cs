@@ -3,8 +3,8 @@
     public class TrafficStatistics
     {
         public int StepsCount { get; private set; } = 0;
-        public int? MaxWaitingTime { get; private set; }
-        public double? AwarageMaxWaitingTime { get => MaxWaitingTime/ StepsCount;}
+        public int MaxWaitingTime { get; private set; }
+        public double AwarageMaxWaitingTime { get => MaxWaitingTime/ StepsCount;}
         public int PassedParticipantsAmount { get; private set; }
         Crossroad crossroad;
         public TrafficStatistics(Crossroad crossroad)

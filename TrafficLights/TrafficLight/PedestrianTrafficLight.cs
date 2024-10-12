@@ -21,7 +21,27 @@ namespace TrafficLights.TrafficLight
 
         protected override bool IsIntersect(TrafficLightBase light)
         {
-            throw new NotImplementedException();
+            bool result = false;
+            switch (light)
+            {
+                case PedestrianTrafficLight:
+                    result = false;
+                    break;
+                case VehicleTrafficLight:
+                    if (light.Direction == Direction.Left)
+                    {
+                        result = RoadSide != Direction.Down;
+                        break;
+                    }
+                    else if ((int)light.Direction - 1 == (int)RoadSide)
+                    {
+                        result = false;
+                        break;
+                    }
+                    result = true;
+                    break;
+            }
+            return result;
         }
     }
 }

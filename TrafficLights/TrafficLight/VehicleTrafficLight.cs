@@ -16,9 +16,30 @@ namespace TrafficLights.TrafficLight
             for (int i = 0; i < count; i++)
                 Queue.Enqueue(new Vehicle(Direction));
         }
-        protected override bool IsIntersect(TrafficLightBase trafficLight)
+        protected override bool IsIntersect(TrafficLightBase light)
         {
-            return false; // TODO
+            bool result = false;
+            switch (light)
+            {
+                case VehicleTrafficLight:
+                    result = ((int)Direction+(int)light.Direction % 2 != 0);
+                    break;
+                case PedestrianTrafficLight: // ПРОВЕРИТЬ ВСЁ ЭТО
+                    var pedestrianLight = (PedestrianTrafficLight) light;
+                    if (Direction == Direction.Left)
+                    {
+                        result = pedestrianLight.RoadSide != Direction.Down;
+                        break;
+                    }
+                    else if ((int)Direction - 1 == (int)pedestrianLight.RoadSide)
+                    {
+                        result = false;
+                        break;
+                    }
+                    result = true;
+                    break;
+            }
+            return result;
         }
     }
 }

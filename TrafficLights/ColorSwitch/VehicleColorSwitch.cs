@@ -1,6 +1,6 @@
 ﻿namespace TrafficLights.ColorSwitch
 {
-    internal class VehicleColorSwitch : ColorSwitchBase
+    public class VehicleColorSwitch : ColorSwitchBase
     {
         public override void NextColor()
         {

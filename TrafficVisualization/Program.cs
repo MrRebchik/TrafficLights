@@ -23,11 +23,13 @@ namespace TrafficVisualization
             {
                 sum += l.PassedCount;
             }
-            Console.WriteLine(sum);
+            Console.WriteLine(sum.ToString());
         }
-        static void ConsoleVisualize()
+        static void ConsoleVisualize(Object source, ElapsedEventArgs e)
         {
             var crs = cross;
+
+            Console.Clear();
 
             Console.WriteLine($"\t.\t{crs.TrafficLights[0].QueueCount}||.\t.\t|.\t.\t||{crs.TrafficLights[1].QueueCount}. \t.\t");
             Console.WriteLine($".\t .{crs.TrafficLights[7].QueueCount}.\t||\t{crs.TrafficLights[8].QueueCount}\t|.\t.\t||.\t{crs.TrafficLights[2].QueueCount}.\t");
@@ -47,18 +49,10 @@ namespace TrafficVisualization
         }
         private static void SetTimer()
         {
-            // Create a timer with a two second interval.
             aTimer = new System.Timers.Timer(timeScale_s * 1000);
-            // Hook up the Elapsed event for the timer. 
-            aTimer.Elapsed += OnTimedEvent;
+            aTimer.Elapsed += ConsoleVisualize;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
-        }
-
-        private static void OnTimedEvent(Object source, ElapsedEventArgs e)
-        {
-            Console.Clear();
-            ConsoleVisualize();
         }
     }
 }

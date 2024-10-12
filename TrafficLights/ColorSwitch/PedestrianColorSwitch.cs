@@ -2,7 +2,7 @@
 
 namespace TrafficLights.ColorSwitch
 {
-    internal class PedestrianColorSwitch : ColorSwitchBase
+    public class PedestrianColorSwitch : ColorSwitchBase
     {
         public override void NextColor()
         {
