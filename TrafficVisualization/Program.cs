@@ -5,7 +5,7 @@ namespace TrafficVisualization
 {
     internal class Program
     {
-        static double timeScale_s = 0.01;
+        static double timeScale_s = 0.0001;
         private static System.Timers.Timer aTimer;
         static Crossroad cross;
         static TrafficStatistics stats;
@@ -13,17 +13,18 @@ namespace TrafficVisualization
         {
             cross = new Crossroad();
             stats = new TrafficStatistics(cross);
-            cross.Start(timeScale_s,100);
+            cross.Start(timeScale_s,1000);
             SetTimer();
             Console.ReadLine();
             aTimer.Stop();
             aTimer.Dispose();
-            int sum = 0;
-            foreach(var l in cross.TrafficLights)
-            {
-                sum += l.PassedCount;
-            }
-            Console.WriteLine(sum.ToString());
+            Console.WriteLine(stats.ToString());
+            //int sum = 0;
+            //foreach(var l in cross.TrafficLights)
+            //{
+            //    sum += l.PassedCount;
+            //}
+            //Console.WriteLine(sum.ToString());
         }
         static void ConsoleVisualize(Object source, ElapsedEventArgs e)
         {

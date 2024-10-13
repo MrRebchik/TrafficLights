@@ -22,9 +22,9 @@ namespace TrafficLights.TrafficLight
             switch (light)
             {
                 case VehicleTrafficLight:
-                    result = ((int)Direction+(int)light.Direction % 2 != 0);
+                    result = ((int)Direction+(int)light.Direction) % 2 != 0;
                     break;
-                case PedestrianTrafficLight: // ПРОВЕРИТЬ ВСЁ ЭТО todo
+                case PedestrianTrafficLight: 
                     var pedestrianLight = (PedestrianTrafficLight) light;
                     if (Direction == Direction.Left)
                     {

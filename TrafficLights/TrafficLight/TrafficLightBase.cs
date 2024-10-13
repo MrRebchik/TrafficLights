@@ -6,10 +6,10 @@ namespace TrafficLights.TrafficLight
 {
     public enum Direction
     {
-        Left,
-        Up,
-        Right,
-        Down
+        Left = 1,
+        Up = 2,
+        Right = 3,
+        Down = 4
     }
     public abstract class TrafficLightBase
     {
@@ -23,7 +23,7 @@ namespace TrafficLights.TrafficLight
         public int QueueCount { get => Queue.Count; }
         public int MaxQueueWaitingTime { get { if (Queue.Count > 0) return Queue.FirstOrDefault().WaitingTime; else return 0; }  }
         public int WaitingTime { get; set; }
-        public virtual bool IsMovmentAllowed { get => Color != Color.Red; }
+        public virtual bool IsMovmentAllowed { get; }
         protected ColorSwitchBase ColorSwitch {  get; set; }
         public Color Color { get => ColorSwitch.Color;}
         public int PassedCount { get; set; }
@@ -57,6 +57,7 @@ namespace TrafficLights.TrafficLight
         }
         public void OnCheck()
         {
+            if(IsGreenNeeded)
             foreach (var other in OtherTrafficLights.Where(x => x.IsGreenNeeded))
             {
                 if (this != other)
@@ -74,8 +75,15 @@ namespace TrafficLights.TrafficLight
         public void OnVehiclePass()
         {
             if (GetType() == typeof(VehicleTrafficLight))
-                ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed);
-            
+            {
+                bool isAnyoneGreen = false;
+                foreach (var other in OtherTrafficLights)
+                {
+                    if ((other.Color == Color.Green || other.Color == Color.Yellow) && IsIntersect(other))
+                        isAnyoneGreen = true;
+                }
+                ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed, isAnyoneGreen);
+            }
         }
         public void OnPedestrianPass()
         {
@@ -85,7 +93,8 @@ namespace TrafficLights.TrafficLight
                 {
                     foreach(var vLights in OtherTrafficLights.Where(x => x.GetType() == typeof(VehicleTrafficLight)).Where(x => x.IsMovmentAllowed))
                     {
-                        if (IsIntersect(vLights)) IsGreenNeeded = false;
+                        if (IsIntersect(vLights)) 
+                            IsGreenNeeded = false;
                     }
                 }
                 ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed);
@@ -109,7 +118,8 @@ namespace TrafficLights.TrafficLight
                 result = GetQueueWaitingTimeSum() > queueWaitingTimeSum;
             if (!result)
             {
-                if(IsIntersect(OtherTrafficLights.FirstOrDefault(x => x.ID == id)))IsGreenNeeded = false;
+                if(IsIntersect(OtherTrafficLights.FirstOrDefault(x => x.ID == id)))
+                    IsGreenNeeded = false;
                 Priority--;
             }
         }

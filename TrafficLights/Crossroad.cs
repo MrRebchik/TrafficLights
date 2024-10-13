@@ -8,22 +8,26 @@ namespace TrafficLights
     {
         public List<TrafficLightBase> TrafficLights = new List<TrafficLightBase>();
         public List<TrafficParticipantsBase> CrossingPartisipants = new List<TrafficParticipantsBase>();
+        public int step = 0;
 
         public Crossroad()
         {
             InitializeTrafficLights();
         }
 
-        public async void Start(double stepDurationSeconds = 0, int stepsCount = 50)
+        public void Start(double stepDurationSeconds = 0, int stepsCount = 50)
         {
             for(int i = 0; i < stepsCount; i++)
             {
-                await Task.Run(CycleStep);
+                step++;
+                //await Task.Run(CycleStep);
+                CycleStep();
                 Thread.Sleep((int)(stepDurationSeconds * 1000));
             }
         }
         private void CycleStep()
         {
+            CrossingPartisipants.Clear();
             UpdateNotify?.Invoke();
             CheckNotify?.Invoke();
             VehiclePassNotify?.Invoke();
@@ -31,6 +35,7 @@ namespace TrafficLights
 
             CheckAccident();
             CrossingPartisipants.Clear();
+            
 
             RandomTrafficGenerate(60,2);
         }
@@ -91,14 +96,14 @@ namespace TrafficLights
                     {
                         if (IsIntersect(participant,other))
                         {
-                            throw new Exception($"An accident with {participant.GetType().Name} and {other.GetType().Name} on directions {participant.Direction} and {other.Direction}");
+                            throw new Exception($"An accident with {participant.GetType().Name} and {other.GetType().Name} on directions {participant.Direction} and {other.Direction}, on step {step}");
                         }
                     }
                 }
                    
             }
         }
-        public bool IsIntersect(TrafficParticipantsBase a, TrafficParticipantsBase b) // todo проверить
+        public bool IsIntersect(TrafficParticipantsBase a, TrafficParticipantsBase b) 
         {
             bool result = true;
             switch (a)
@@ -107,7 +112,7 @@ namespace TrafficLights
                     switch (b)
                     {
                         case Vehicle:
-                            result = (int)a.Direction + (int)b.Direction % 2 != 0;
+                            result = ((int)a.Direction + (int)b.Direction) % 2 != 0;
                             break;
                         case Pedestrian:
                             var pedestrian = (Pedestrian)b;

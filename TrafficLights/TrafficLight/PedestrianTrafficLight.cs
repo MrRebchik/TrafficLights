@@ -7,6 +7,7 @@ namespace TrafficLights.TrafficLight
     public class PedestrianTrafficLight : TrafficLightBase
     {
         public readonly Direction RoadSide;
+        public override bool IsMovmentAllowed { get => Color == Color.Green; }
         public PedestrianTrafficLight(Crossroad crossroad, Direction direction, Direction roadSide): base(crossroad, direction)
         {
             ColorSwitch = new PedestrianColorSwitch();

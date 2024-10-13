@@ -14,8 +14,17 @@
         }
         public Color Color { get; protected set; }
         public Color PreviousColor { get; protected set; }
-        public void SolveInput(bool isGreenNeeded, bool isMovmentAllowed)
+        public void SolveInput(bool isGreenNeeded, bool isMovmentAllowed, bool isAnyoneYellow = false)
         {
+            if(Color == Color.Yellow)
+            {
+                NextColor();
+                return;
+            }
+            if (isAnyoneYellow)
+            {
+                return;
+            }
             if (isGreenNeeded != isMovmentAllowed)
                 NextColor();
         }
