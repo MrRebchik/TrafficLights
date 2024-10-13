@@ -13,6 +13,7 @@ namespace TrafficLights.TrafficLight
     }
     public abstract class TrafficLightBase
     {
+        protected List<TrafficParticipantsBase> CrossingPartisipants;
         protected readonly List<TrafficLightBase> OtherTrafficLights;
         protected Queue<TrafficParticipantsBase> Queue = new Queue<TrafficParticipantsBase>();
         public readonly int ID;
@@ -32,6 +33,7 @@ namespace TrafficLights.TrafficLight
 
         public TrafficLightBase(Crossroad crossroad, Direction direction)
         {
+            CrossingPartisipants = crossroad.CrossingPartisipants;
             OtherTrafficLights = crossroad.TrafficLights;
             Direction = direction;
             ID = OtherTrafficLights.Count + 1;
@@ -43,7 +45,7 @@ namespace TrafficLights.TrafficLight
         {
             if(Queue.Count != 0)
             {
-                Queue.Dequeue();
+                CrossingPartisipants.Add(Queue.Dequeue());
                 PassedCount++;
             }
             WaitingTime = 0;
@@ -53,19 +55,49 @@ namespace TrafficLights.TrafficLight
             WaitingTime++;
             CompareRequest?.Invoke(ID, QueueCount, GetQueueWaitingTimeSum());
         }
-        public void OnCheck() // TODO скорее всего тут косяк + потом либо тут либо в отдельном событии проверка дополнительных не мешающих светофоров
+        public void OnCheck()
         {
-            if (IsGreenNeeded && !IsMovmentAllowed)
-                ColorSwitch.NextColor(); //ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed)
+            foreach (var other in OtherTrafficLights.Where(x => x.IsGreenNeeded))
+            {
+                if (this != other)
+                {
+                    if (IsIntersect(other))
+                    {
+                        if (Priority > other.Priority)
+                            other.IsGreenNeeded = false;
+                        else
+                            IsGreenNeeded = false;
+                    }
+                }
+            }
+        }
+        public void OnVehiclePass()
+        {
+            if (GetType() == typeof(VehicleTrafficLight))
+                ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed);
+            
+        }
+        public void OnPedestrianPass()
+        {
+            if (GetType() == typeof(PedestrianTrafficLight))
+            {
+                if (IsGreenNeeded)
+                {
+                    foreach(var vLights in OtherTrafficLights.Where(x => x.GetType() == typeof(VehicleTrafficLight)).Where(x => x.IsMovmentAllowed))
+                    {
+                        if (IsIntersect(vLights)) IsGreenNeeded = false;
+                    }
+                }
+                ColorSwitch.SolveInput(IsGreenNeeded, IsMovmentAllowed);
+            }
+
             if (IsMovmentAllowed)
                 QueueDecrease();
             SetDefaultFlagsValues();
             foreach (var participants in Queue)
-            {
                 participants.EncreaseWatingTime();
-            }
         }
-        protected abstract bool IsIntersect(TrafficLightBase light); //TODO
+        public abstract bool IsIntersect(TrafficLightBase light); 
         public virtual void ComparePriority(int id, int queueCount, int queueWaitingTimeSum)
         {
             bool result;
@@ -77,7 +109,7 @@ namespace TrafficLights.TrafficLight
                 result = GetQueueWaitingTimeSum() > queueWaitingTimeSum;
             if (!result)
             {
-                IsGreenNeeded = false; // или если не мешает, тогда оставляем тру
+                if(IsIntersect(OtherTrafficLights.FirstOrDefault(x => x.ID == id)))IsGreenNeeded = false;
                 Priority--;
             }
         }

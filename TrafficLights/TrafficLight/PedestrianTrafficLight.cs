@@ -19,7 +19,7 @@ namespace TrafficLights.TrafficLight
                 Queue.Enqueue(new Pedestrian(Direction, RoadSide));
         }
 
-        protected override bool IsIntersect(TrafficLightBase light)
+        public override bool IsIntersect(TrafficLightBase light)
         {
             bool result = false;
             switch (light)

@@ -1,11 +1,13 @@
 ﻿using System.Threading;
 using TrafficLights.TrafficLight;
+using TrafficLights.TrafficParticipants;
 
 namespace TrafficLights
 {
     public class Crossroad
     {
         public List<TrafficLightBase> TrafficLights = new List<TrafficLightBase>();
+        public List<TrafficParticipantsBase> CrossingPartisipants = new List<TrafficParticipantsBase>();
 
         public Crossroad()
         {
@@ -16,7 +18,7 @@ namespace TrafficLights
         {
             for(int i = 0; i < stepsCount; i++)
             {
-                await Task.Run(() => CycleStep());
+                await Task.Run(CycleStep);
                 Thread.Sleep((int)(stepDurationSeconds * 1000));
             }
         }
@@ -24,11 +26,18 @@ namespace TrafficLights
         {
             UpdateNotify?.Invoke();
             CheckNotify?.Invoke();
+            VehiclePassNotify?.Invoke();
+            PedestrianPassNotify?.Invoke();
 
-            RandomTrafficGenerate();
+            CheckAccident();
+            CrossingPartisipants.Clear();
+
+            RandomTrafficGenerate(60,2);
         }
         public event Action UpdateNotify;
         public event Action CheckNotify;
+        public event Action VehiclePassNotify;
+        public event Action PedestrianPassNotify;
 
         private void InitializeTrafficLights()
         {
@@ -48,7 +57,9 @@ namespace TrafficLights
             {
                 UpdateNotify += light.OnUpdate;
                 CheckNotify += light.OnCheck;
-                foreach(var other in TrafficLights)
+                VehiclePassNotify += light.OnVehiclePass;
+                PedestrianPassNotify += light.OnPedestrianPass;
+                foreach (var other in TrafficLights)
                 {
                     if(other != light)
                     {
@@ -69,6 +80,75 @@ namespace TrafficLights
                 if (new Random().Next(100) > probability)
                     light.QueueEncrease(new Random().Next(spawnCountRange));
             }
+        }
+        private void CheckAccident()
+        {
+            foreach (var participant in CrossingPartisipants)
+            {
+                foreach (var other in CrossingPartisipants)
+                {
+                    if (participant != other)
+                    {
+                        if (IsIntersect(participant,other))
+                        {
+                            throw new Exception($"An accident with {participant.GetType().Name} and {other.GetType().Name} on directions {participant.Direction} and {other.Direction}");
+                        }
+                    }
+                }
+                   
+            }
+        }
+        public bool IsIntersect(TrafficParticipantsBase a, TrafficParticipantsBase b) // todo проверить
+        {
+            bool result = true;
+            switch (a)
+            {
+                case Vehicle:
+                    switch (b)
+                    {
+                        case Vehicle:
+                            result = (int)a.Direction + (int)b.Direction % 2 != 0;
+                            break;
+                        case Pedestrian:
+                            var pedestrian = (Pedestrian)b;
+                            if (a.Direction == Direction.Left)
+                            {
+                                result = pedestrian.RoadSide != Direction.Down;
+                                break;
+                            }
+                            else if ((int)a.Direction - 1 == (int)pedestrian.RoadSide)
+                            {
+                                result = false;
+                                break;
+                            }
+                            result = true;
+                            break;
+                    }
+                    break;
+                case Pedestrian:
+                    switch (b)
+                    {
+                        case Vehicle:
+                            if (b.Direction == Direction.Left)
+                            {
+                                result = ((Pedestrian)a).RoadSide != Direction.Down;
+                                break;
+                            }
+                            else if ((int)b.Direction - 1 == (int)((Pedestrian)a).RoadSide)
+                            {
+                                result = false;
+                                break;
+                            }
+                            result = true;
+                            break;
+                        case Pedestrian:
+                            result = false;
+                            break;
+                    }
+                    break;
+
+            }
+            return result;
         }
     }
 }

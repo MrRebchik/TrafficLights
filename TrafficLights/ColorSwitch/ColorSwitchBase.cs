@@ -14,6 +14,11 @@
         }
         public Color Color { get; protected set; }
         public Color PreviousColor { get; protected set; }
+        public void SolveInput(bool isGreenNeeded, bool isMovmentAllowed)
+        {
+            if (isGreenNeeded != isMovmentAllowed)
+                NextColor();
+        }
 
         public virtual void NextColor()
         {

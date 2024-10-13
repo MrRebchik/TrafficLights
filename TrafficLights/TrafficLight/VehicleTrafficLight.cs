@@ -16,7 +16,7 @@ namespace TrafficLights.TrafficLight
             for (int i = 0; i < count; i++)
                 Queue.Enqueue(new Vehicle(Direction));
         }
-        protected override bool IsIntersect(TrafficLightBase light)
+        public override bool IsIntersect(TrafficLightBase light)
         {
             bool result = false;
             switch (light)
@@ -24,7 +24,7 @@ namespace TrafficLights.TrafficLight
                 case VehicleTrafficLight:
                     result = ((int)Direction+(int)light.Direction % 2 != 0);
                     break;
-                case PedestrianTrafficLight: // ПРОВЕРИТЬ ВСЁ ЭТО
+                case PedestrianTrafficLight: // ПРОВЕРИТЬ ВСЁ ЭТО todo
                     var pedestrianLight = (PedestrianTrafficLight) light;
                     if (Direction == Direction.Left)
                     {
